@@ -1,7 +1,0 @@
-name: SimpleThings
-main: sifflion.simplethings.simplethings
-version: 1.0
-author: Sifflion
-commands:
-  home:
-    usage: /<command>
