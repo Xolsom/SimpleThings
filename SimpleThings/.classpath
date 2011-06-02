@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="resources"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
+	<classpathentry kind="lib" path="C:/Users/Damian/Desktop/Minecraft/Minecraft Bukkit Server/craftbukkit-0.0.1-SNAPSHOT.jar" sourcepath="C:/Users/Damian/Downloads/Bukkit-Bukkit-0.0.0-557-g2406a44.zip"/>
+	<classpathentry kind="lib" path="C:/Users/Damian/Desktop/Minecraft/Minecraft Bukkit Server/plugins/Permissions-bin (2)/Permissions.jar" sourcepath="C:/Users/Damian/Desktop/Minecraft/TheYeti-Permissions-2.7.3-10-gb418ca1/TheYeti-Permissions-b418ca1/src/main/java"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
