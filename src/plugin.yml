@@ -1,7 +1,11 @@
 name: SimpleThings
-main: sifflion.simplethings.simplethings
-version: 1.0
+main: sifflion.simplethings.SimpleThings
+version: 1.2.1
 author: Sifflion
 commands:
   home:
+    usage: /<command>
+  lwcreset:
+    usage: /<command>
+  killme:
     usage: /<command>

@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.logging.Logger;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -14,19 +15,22 @@ import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.PluginManager;
 
-import com.nijiko.permissions.PermissionHandler;
-import com.nijikokun.bukkit.Permissions.Permissions;
+import com.griefcraft.lwc.LWC;
+import com.griefcraft.lwc.LWCPlugin;
+import com.griefcraft.model.Protection;
+import com.sk89q.worldedit.Vector;
 
 import sifflion.simplethings.SimpleBlockListener;
 
-public class simplethings extends JavaPlugin {
+public class SimpleThings extends JavaPlugin {
 	
     private final SimpleBlockListener blockListener = new SimpleBlockListener(this);
+    private final SimpleEntityListener entityListener = new SimpleEntityListener(this);
     private final HashMap<Player, Boolean> debugees = new HashMap<Player, Boolean>();
     
-    private static PermissionHandler Permissions = null;
+    protected static LWC lwc = null;
     protected static final Logger log = Logger.getLogger("Minecraft");
-    private PluginDescriptionFile pdfFile = null;
+    protected static PluginDescriptionFile pdfFile = null;
 
     public void onDisable() {
 
@@ -38,11 +42,14 @@ public class simplethings extends JavaPlugin {
 
         PluginManager pm = getServer().getPluginManager();
         pm.registerEvent(Event.Type.BLOCK_PLACE, blockListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.BLOCK_BREAK, blockListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.PAINTING_PLACE, entityListener, Priority.High, this);
+        pm.registerEvent(Event.Type.PAINTING_BREAK, entityListener, Priority.High, this);
         if(pdfFile == null){
             pdfFile = this.getDescription();
             }
         log.info( "[" + pdfFile.getName() + "]" + " version " + pdfFile.getVersion() + " is enabled!" );
-        setupPermissions();
+        setupPlugins();
     }
 
     public boolean isDebugging(final Player player) {
@@ -68,35 +75,56 @@ public class simplethings extends JavaPlugin {
     			player.sendMessage(ChatColor.DARK_RED + "Home has been disabled. Check out the new warps in the mage tower!");
     		    return true;
             }
+    		
+    		//LWC reset outside WorldGuard regions. Thanks Xolsom.
+    		if(commandLabel.equalsIgnoreCase("lwcreset")  && Permission.IsAllowed(player, "darktide.admin.resetlwc")){ 
+    			if(WorldGuard.getWorldGuardState() == false || lwc == null){
+    				player.sendMessage(ChatColor.DARK_RED + "The required plugin is not enabled.");
+    				return true;
+    			}
+    			
+    			for(Protection protection : lwc.getPhysicalDatabase().loadProtections()) {
+    				Vector protectionPoint = new Vector(protection.getX(), protection.getY(), protection.getZ());
+    			    if(WorldGuard.getRegionList(player.getWorld(), protectionPoint) == null) {
+    			        lwc.getPhysicalDatabase().unregisterProtection(protection.getId());
+    			        protection.removeCache();
+    			    }
+    			}
+
+    			player.sendMessage(ChatColor.DARK_RED + "Every LWC outside of valid WorldGuard regions has been removed.");    			
+    			return true;
+    		}
+    		else
+    		{
+    			player.sendMessage(ChatColor.RED + "You do not have access to that command.");
+    		}
+    		
+    		//Killme replacement
+    		if(commandLabel.equalsIgnoreCase("killme")){			 
+    			player.sendMessage(ChatColor.DARK_RED + "Killme has been disabled");
+    		    return true;
+            }
       return true; 
       }
     
-    public void setupPermissions() {
-        Plugin this_plugin = getServer().getPluginManager().getPlugin("Permissions");
-
-        if (Permissions == null){
-          if (this_plugin != null) {
-            getServer().getPluginManager().enablePlugin(this_plugin);
-            Permissions = ((Permissions)this_plugin).getHandler();
-            log.info("[" + pdfFile.getName() + "]" + " Permissions detected!");
-          }
-          else
-          {
-        	log.info("[" + pdfFile.getName() + "]" + " Permissions not detected! Permissions checks defaulted to False.");  
-          }
+    public void setupPlugins() {
+    	Server server = getServer();
+    	Plugin Permissions = server.getPluginManager().getPlugin("Permissions");
+        Plugin Worldguard = server.getPluginManager().getPlugin("WorldGuard");
+        LWCPlugin LWC = (LWCPlugin) getServer().getPluginManager().getPlugin("LWC");
+        WorldGuard.setupWorldGuard(Worldguard, server);
+        Permission.setupPermissions(Permissions, server);
+        
+        if (lwc == null){
+            if (LWC != null) {
+            	lwc = ((LWCPlugin) LWC).getLWC();
+              log.info("[" + pdfFile.getName() + "]" + " LWC detected!");
+            }
+            else
+            {
+          	log.info("[" + pdfFile.getName() + "]" + " LWC not detected! WorldGuard checks defaulted to False.");  
+            }
+        }
       }
-    }
-    
-    public static boolean IsAllowed(Player player, String string){
-    	
-    	if(Permissions != null){   		
-    	    if(Permissions.has(player, string)){
-    		    return true;
-    	    }
-    	}
-    	return false;   	
-    }
-
-      
-  
+            
 }
